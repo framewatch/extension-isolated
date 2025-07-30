@@ -1,0 +1,73 @@
+<style>
+    .progress-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 220px; /* Increased height */
+    }
+    .progress-circle-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 20px auto;
+    }
+    .progress-circle-svg {
+        width: 120px;
+        height: 120px;
+        transform: rotate(-90deg);
+    }
+    .progress-circle-bg {
+        stroke-width: 8px;
+        stroke: #efefef;
+        fill: none;
+    }
+    .progress-circle-progress {
+        stroke-dasharray: 314; /* 2 * PI * 50 */
+        stroke-dashoffset: 314;
+        stroke-linecap: round;
+        stroke-width: 8px;
+        stroke: #0095f6;
+        fill: none;
+        transition: stroke-dashoffset 0.3s linear;
+    }
+    .progress-item-image {
+        position: absolute;
+        top: 10px; /* 1/2 of (container size - image size) */
+        left: 10px;
+        width: 100px; /* circle size - (2 * stroke-width) */
+        height: 100px;
+        border-radius: 50%;
+        background-color: #e2e2e2; /* Default color */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+    }
+    .progress-text {
+        margin-bottom: 15px;
+        font-weight: 500;
+    }
+    .progress-percentage {
+        font-size: 24px;
+        font-weight: 600;
+        color: #262626;
+        margin-top: -95px; /* Position it over the circle */
+        position: relative;
+        z-index: 1;
+
+    }
+</style>
+<div class="progress-container">
+    <p class="progress-text">Performing action...</p>
+    <div class="progress-circle-container">
+        <div id="progress-item-image" class="progress-item-image"></div>
+        <svg class="progress-circle-svg">
+            <circle class="progress-circle-bg" r="50" cx="60" cy="60"></circle>
+            <circle id="progress-circle" class="progress-circle-progress" r="50" cx="60" cy="60"></circle>
+        </svg>
+    </div>
+     <div id="progress-percentage" class="progress-percentage">0%</div>
+</div>

@@ -1,0 +1,64 @@
+<style>
+    .form-section { margin-bottom: 20px; }
+    #offer-settings { display: none; padding: 15px; border: 1px dashed #dbdbdb; border-radius: 8px; margin-top: 10px; }
+    #offer-settings .form-field { display: flex; align-items: center; gap: 15px; margin-bottom: 0;}
+    .offer-type-option { display: flex; align-items: center; gap: 5px; }
+    textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 10px;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: #fafafa;
+        resize: none;
+        overflow-y: auto;
+    }
+    
+    .toggle-switch { display: flex; align-items: center; justify-content: space-between; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #0095f6; }
+    input:checked + .slider:before { transform: translateX(20px); }
+</style>
+<div id="start-message-view">
+    <div style="padding-top: 15px;">
+        <div class="form-section">
+            <label for="message-text">Message</label>
+            <textarea id="message-text" placeholder="e.g., Hi! Thanks for your interest. Here's an offer..."></textarea>
+            <p id="message-error" class="feedback error" style="display: none; margin-top: 8px;"></p>
+        </div>
+
+        <div class="form-section">
+            <div class="toggle-switch">
+                <label for="include-offer-checkbox">Include an offer</label>
+                <label class="switch">
+                    <input type="checkbox" id="include-offer-checkbox">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div id="offer-settings">
+                <div class="form-field">
+                    <div class="offer-type-option">
+                        <input type="radio" id="offer-type-percent" name="offer_type" value="%" style="margin: 8px 0;" checked>
+                        <label for="offer-type-percent" style="margin: 0;">%</label>
+                    </div>
+                    <div class="offer-type-option">
+                        <input type="radio" id="offer-type-fixed" name="offer_type" value="$" style="margin: 8px 0;">
+                        <label for="offer-type-fixed" style="margin: 0;">$</label>
+                    </div>
+                    <input type="number" id="offer-value" placeholder="10" style="width: 80px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <label for="delay-minutes">Delay between messages (minutes)</label>
+            <input type="number" id="delay-minutes" value="1" min="1">
+        </div>
+
+        <button id="start-auto-message-btn" class="btn-primary">Start Auto Message</button>
+    </div>
+</div>

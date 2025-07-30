@@ -1,0 +1,59 @@
+<style>
+    #item-image-mock { width: 100%; height: 160px; background-color: #262626; border-radius: 8px; margin-bottom: 15px; border: 3px solid transparent; transition: border-color 0.2s ease-in-out; }
+    /* --- UPDATED STYLE --- */
+    #ai-description-text {
+        min-height: 80px;
+        max-height: 120px; /* Set the maximum height */
+        overflow-y: auto;   /* Add a vertical scrollbar if content overflows */
+        background-color: #fafafa;
+        border: 1px solid #dbdbdb;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    .review-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .feedback.error { display: block; margin-top: 15px; }
+
+    .navigation-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .nav-arrow-group {
+        display: flex;
+        gap: 8px;
+    }
+    .nav-arrow-group button, .navigation-controls .btn-primary {
+        width: auto;
+        padding: 8px 12px;
+    }
+</style>
+
+<div id="accept-description-view">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h4>Review Description</h4>
+        <span id="item-counter" style="font-size: 14px; color: #8e8e8e;"></span>
+    </div>
+
+    <div id="item-image-mock"></div>
+    <p id="ai-description-text"></p>
+
+    <div class="review-actions">
+        <button id="deny-btn" class="btn-secondary">Deny</button>
+        <button id="accept-btn" class="btn-primary">Accept</button>
+    </div>
+
+    <p id="review-error-message" class="feedback error" style="display: none;"></p>
+
+    <div class="navigation-controls">
+        <div class="nav-arrow-group">
+            <button id="back-btn" class="btn-secondary">
+                <svg class="icon-arrow" width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 6.75C13.4142 6.75 13.75 6.41421 13.75 6C13.75 5.58579 13.4142 5.25 13 5.25V6.75ZM0.46967 5.46967C0.176777 5.76256 0.176777 6.23744 0.46967 6.53033L5.24264 11.3033C5.53553 11.5962 6.01041 11.5962 6.3033 11.3033C6.59619 11.0104 6.59619 10.5355 6.3033 10.2426L2.06066 6L6.3033 1.75736C6.59619 1.46447 6.59619 0.989592 6.3033 0.696699C6.01041 0.403806 5.53553 0.403806 5.24264 0.696699L0.46967 5.46967ZM13 6V5.25L1 5.25V6V6.75L13 6.75V6Z"/></svg>
+            </button> <button id="forward-btn" class="btn-secondary">
+                <svg class="icon-arrow" width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5.25C0.585786 5.25 0.25 5.58579 0.25 6C0.25 6.41421 0.585786 6.75 1 6.75L1 5.25ZM13.5303 6.53033C13.8232 6.23744 13.8232 5.76256 13.5303 5.46967L8.75736 0.696699C8.46447 0.403806 7.98959 0.403806 7.6967 0.696699C7.40381 0.989592 7.40381 1.46447 7.6967 1.75736L11.9393 6L7.6967 10.2426C7.40381 10.5355 7.40381 11.0104 7.6967 11.3033C7.98959 11.5962 8.46447 11.5962 8.75736 11.3033L13.5303 6.53033ZM1 6L1 6.75L13 6.75V6V5.25L1 5.25L1 6Z"/></svg>
+            </button> </div>
+        <button id="finish-review-btn" class="btn-primary">Finish Review</button>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+<style>
+    .form-section { margin-bottom: 20px; }
+</style>
+<div id="start-auto-follow-view">
+    <div style="padding-top: 15px;">
+        <div class="form-section">
+            <label for="target-input">Keyword</label>
+            <input type="text" id="target-input" placeholder="Enter keyword...">
+        </div>
+
+        <div class="form-section">
+            <label for="quantity-input">Quantity</label>
+            <input type="number" id="quantity-input" value="25" min="1" max="100">
+            <p class="small-text" style="margin-top: 5px;">For safety, keep this under 100.</p>
+        </div>
+        
+        <p id="follow-action-error" class="feedback error" style="display: none; margin-top: -10px; margin-bottom: 15px;"></p>
+
+        <button id="start-auto-follow-btn" class="btn-primary">Start Auto Follow</button>
+    </div>
+</div>
