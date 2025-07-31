@@ -1,92 +1,144 @@
 // src/views/dashboard/progress_screen/progress_screen.js
+import { likeItem, repostItemWorkflow, followUser, RateLimitError } from '../../../services/api-service.js';
 
-// This function can be called from outside to update the progress
-function updateProgress(shadowRoot, percentage, item) {
+function updateProgress(shadowRoot, percentage, currentItem, currentItemIndex, totalItems) {
     const progressCircle = shadowRoot.getElementById('progress-circle');
-    const progressPercentage = shadowRoot.getElementById('progress-percentage');
     const itemImage = shadowRoot.getElementById('progress-item-image');
+    const actionCounterEl = shadowRoot.getElementById('action-counter');
+    const userNameEl = shadowRoot.getElementById('item-user-name');
 
-    if (progressCircle && progressPercentage) {
+    if (progressCircle) {
         const radius = progressCircle.r.baseVal.value;
         const circumference = 2 * Math.PI * radius;
         const offset = circumference - (percentage / 100) * circumference;
-
         progressCircle.style.strokeDashoffset = offset;
-        progressPercentage.textContent = `${Math.round(percentage)}%`;
     }
-
-    if (itemImage && item && item.color) {
-        itemImage.style.backgroundColor = item.color;
+    if (itemImage && currentItem?.thumbnail_url) {
+        itemImage.style.backgroundImage = `url(${currentItem.thumbnail_url})`;
+    } else if (itemImage) {
+        itemImage.style.backgroundImage = 'none';
+    }
+    // Correctly display the current action number (e.g., "Action 1/3")
+    if (actionCounterEl) {
+        actionCounterEl.textContent = `Action ${currentItemIndex + 1}/${totalItems}`;
+    }
+    if (userNameEl && currentItem?.user?.name) {
+        userNameEl.textContent = currentItem.user.name;
+    } else if (userNameEl) {
+        userNameEl.textContent = currentItem ? `Item ID: ${currentItem.id}` : '...';
     }
 }
 
 
 export async function init(status, shadowRoot, viewContext) {
-    const { featureName, items, context } = viewContext; // Assuming 'items' will be passed in the context for processing
+    const { itemsToProcess, actionType } = viewContext;
+    const stopBtn = shadowRoot.getElementById('stop-action-btn');
+    const errorEl = shadowRoot.getElementById('action-error-message');
 
-    // Mock processing of items
-    const totalItems = items ? items.length : 10; // Mock 10 items if none are passed
-    let processedItems = 0;
+    // For simplicity, we can say every action, single or multi-step, contributes to the whole.
+    // We'll calculate progress based on items processed, not micro-steps.
+    const totalItems = itemsToProcess.length;
+    let itemsCompleted = 0;
 
-    // Set the initial state
-    updateProgress(shadowRoot, 0, items ? items[0] : {color: '#c6c6c6'});
+    let isActionStopped = false;
+    let stopReason = 'user'; // To distinguish between user stop and rate limit stop
 
-    const processInterval = setInterval(() => {
-        processedItems++;
-        const progress = (processedItems / totalItems) * 100;
 
-        // Get the current item to display its image/color
-        const currentItem = items ? items[processedItems -1] : {color: '#'+(Math.random()*0xFFFFFF<<0).toString(16)};
+    let currentItemIndex = 0;
+    const csrfToken = "75f6c9fa-dc8e-4e52-a000-e09dd4084b3e";
+    const domain = "www.vinted.pl";
+    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
 
-        updateProgress(shadowRoot, progress, currentItem);
+    stopBtn.addEventListener('click', () => {
+        isActionStopped = true;
+        stopReason = 'user';
+        stopBtn.disabled = true;
+        stopBtn.textContent = 'Stopping...';
+    });
 
-        if (processedItems >= totalItems) {
-            clearInterval(processInterval);
-            setTimeout(finishAction, 500); // Wait half a second before finishing
-        }
-    }, 500); // Process one item every 500ms
+    // Initial UI update
+    updateProgress(shadowRoot, 0, itemsToProcess[0], -1, totalItems); // Show "Action 0/X" initially
 
-    async function finishAction() {
-         let nextViewName;
-        let nextContext = {};
+    for (const item of itemsToProcess) {
+        if (isActionStopped) break;
 
-        // --- UPDATED: Simplified Conditional Logic ---
-        if (viewContext.actionType === 'finalUpdate') {
-            // After the final update, go to the finished screen
-            nextViewName = 'action_finished';
-            nextContext = {
-                apiResponse: {
-                    success: true,
-                    data: { message: "All listings have been updated successfully." }
-                }
-            };
-        } else {
-            // This is the initial generation flow for all features
-            const { featureName } = viewContext;
-            const response = await chrome.runtime.sendMessage({
-                type: 'USE_FEATURE',
-                payload: { featureName }
-            });
+        // Update UI to show we are now processing the *current* item
+        updateProgress(shadowRoot, (itemsCompleted / totalItems) * 100, item, currentItemIndex, totalItems);
 
-            if (featureName === 'aiDescriptions') {
-                nextViewName = 'accept_description'; // Go to review screen after generation
-                // Create a mock response for the mockup
-                nextContext.itemsToReview = [
-                    { id: 1, generatedDescription: 'This is a mock AI description for item 1.' },
-                    { id: 2, generatedDescription: 'This is another mock AI description for item 2.' },
-                    { id: 3, generatedDescription: 'A third mock description to review.' }
-                ];
-            } else {
-                nextViewName = 'action_finished'; // Go straight to finished screen for other features
+        let success = false;
+        try {
+            if (actionType === 'repostItem') {
+                // Multi-step action with its own progress reporting
+                await repostItemWorkflow({
+                    initialPostId: item.id, csrfToken, domain, proxyUrl,
+                    isStopRequested: () => isActionStopped,
+                    onProgress: (step) => {
+                        const microProgress = step / 8; // 8 steps in repost
+                        const overallProgress = ((currentItemIndex + microProgress) / totalItems) * 100;
+                        updateProgress(shadowRoot, overallProgress, item, currentItemIndex, totalItems);
+                    }
+                });
+                success = true;
+            } else if (actionType === 'autoLike') {
+                success = await likeItem(item.id, csrfToken);
+            } else if (actionType === 'autoFollow') {
+                success = await followUser(item.user.id, csrfToken);
             }
-            nextContext.apiResponse = response;
-        }
+        } catch (err) {
+            console.error(`Action failed for item #${currentItemIndex + 1} (ID: ${item.id}):`, err);
+            success = false;
 
+            if (err instanceof RateLimitError) {
+                errorEl.textContent = 'Too many requests. Action will now stop.';
+                errorEl.style.display = 'block';
+                isActionStopped = true; // Set the flag to stop the main loop
+                stopReason = 'rate_limit'; // Set the reason for stopping
+                // We don't need a timeout here because we want the process to stop and navigate away.
+            } else if (!isActionStopped) {
+                // Handle other, non-fatal errors
+                errorEl.textContent = `Error on action #${currentItemIndex + 1}`;
+                errorEl.style.display = 'block';
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                if (errorEl) errorEl.style.display = 'none';
+            }
+        
+        }
+        
+        if (success) {
+            itemsCompleted++;
+        } else {
+            if (!isActionStopped) {
+                errorEl.textContent = `Error on action #${currentItemIndex + 1}`;
+                errorEl.style.display = 'block';
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                if (errorEl) errorEl.style.display = 'none';
+            }
+        }
+        
+        currentItemIndex++;
+        // --- THIS IS THE FIX ---
+        // After a single-step action (or a failed multi-step one), update the main progress bar.
+        if (actionType !== 'repostItem' || !success) {
+             updateProgress(shadowRoot, (currentItemIndex / totalItems) * 100, item, currentItemIndex -1, totalItems);
+        }
+    }
+
+    // Final navigation logic...
+    let finalMessage;
+    if (isActionStopped) {
+        finalMessage = (stopReason === 'rate_limit')
+            ? "Action stopped due to too many requests."
+            : "Action stopped by user.";
+    } else {
+        finalMessage = "Process finished.";
+    }
+    
+    setTimeout(() => {
         const event = new CustomEvent('change-dashboard-view', {
-            detail: { viewName: nextViewName, context: nextContext },
+            detail: { viewName: 'action_finished', context: { apiResponse: { success: true, data: { message: finalMessage } } } },
             bubbles: true,
             composed: true
         });
-        shadowRoot.getElementById('dashboard-content').dispatchEvent(event);
-    }
+        shadowRoot.querySelector('.progress-container').dispatchEvent(event);
+    }, 400);
 }

@@ -1,4 +1,5 @@
 import { getFriendlyErrorMessage } from '../../../error-dictionary.js';
+import { fetchKeywordListings } from '../../../services/api-service.js';
 
 export function init(status, shadowRoot, viewContext) {
     const { featureName } = viewContext;
@@ -24,7 +25,7 @@ export function init(status, shadowRoot, viewContext) {
         radio.addEventListener('change', () => updateTargetInput(radio.value));
     });
 
-    startBtn?.addEventListener('click', () => {
+    startBtn?.addEventListener('click', async()  => {
         const targetValue = targetInput.value.trim();
         const quantityValue = quantityInput.value;
 
@@ -42,27 +43,30 @@ export function init(status, shadowRoot, viewContext) {
             return;
         }
 
-        const settings = {
-            targetType: shadowRoot.querySelector('input[name="target_type"]:checked').value,
-            targetValue: targetValue,
-            quantity: quantityValue
-        };
 
         startBtn.disabled = true;
+
+        const itemsToLike = await fetchKeywordListings(targetValue, quantityValue);
+
+        if (itemsToLike === null || itemsToLike.length === 0) {
+            errorEl.textContent = "Could not find any items for that keyword.";
+            errorEl.style.display = 'block';
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Auto Like';
+            return;
+        }
 
         const event = new CustomEvent('change-dashboard-view', {
             detail: {
                 viewName: 'progress_screen',
                 context: {
-                    featureName,
-                    actionType: 'finalUpdate',
-                    apiResponse: {
-                        success: true,
-                        data: { message: `Auto Like action has started.` }
-                    }
+                    // Pass the list of items and the action to perform
+                    itemsToProcess: itemsToLike,
+                    actionType: 'autoLike'
                 }
             },
-            bubbles: true, composed: true
+            bubbles: true,
+            composed: true
         });
         startBtn.dispatchEvent(event);
     });

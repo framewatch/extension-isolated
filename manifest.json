@@ -19,6 +19,7 @@
         "src/main.js",
         "styles/main.css",
         "src/error-dictionary.js",
+        "src/services/api-service.js",
         "src/views/*/*.html",
         "src/views/*/*.js",
         "src/views/dashboard/*/*.html",

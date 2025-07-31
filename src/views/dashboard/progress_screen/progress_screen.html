@@ -4,13 +4,22 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 220px; /* Increased height */
+        min-height: 220px;
+    }
+    .progress-display-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        justify-content: center;
+        width: 100%;
+        margin-top: 15px;
+        margin-bottom: 15px;
     }
     .progress-circle-container {
         position: relative;
         width: 120px;
         height: 120px;
-        margin: 20px auto;
+        flex-shrink: 0;
     }
     .progress-circle-svg {
         width: 120px;
@@ -23,7 +32,7 @@
         fill: none;
     }
     .progress-circle-progress {
-        stroke-dasharray: 314; /* 2 * PI * 50 */
+        stroke-dasharray: 314;
         stroke-dashoffset: 314;
         stroke-linecap: round;
         stroke-width: 8px;
@@ -33,41 +42,73 @@
     }
     .progress-item-image {
         position: absolute;
-        top: 10px; /* 1/2 of (container size - image size) */
+        top: 10px;
         left: 10px;
-        width: 100px; /* circle size - (2 * stroke-width) */
+        width: 100px;
         height: 100px;
         border-radius: 50%;
-        background-color: #e2e2e2; /* Default color */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        font-weight: bold;
-        color: #fff;
+        background-color: #e2e2e2;
+        background-size: cover;
+        background-position: center;
     }
     .progress-text {
-        margin-bottom: 15px;
+        margin-bottom: 5px;
         font-weight: 500;
     }
-    .progress-percentage {
-        font-size: 24px;
+    .progress-details {
+        text-align: left;
+    }
+    .progress-details p {
+        margin: 0;
+    }
+    #action-counter {
         font-weight: 600;
+        font-size: 14px;
         color: #262626;
-        margin-top: -95px; /* Position it over the circle */
-        position: relative;
-        z-index: 1;
-
+    }
+    #item-user-name {
+        font-size: 13px;
+        color: #8e8e8e;
+        margin-top: 4px !important;
+    }
+    /* Error message style */
+    #action-error-message {
+        display: none; /* Hidden by default */
+        color: #ed4956;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    #stop-action-btn {
+        margin-top: 10px;
+        background-color: #ed4956;
+        color: white;
+        border: none;
+    }
+    #stop-action-btn:hover {
+        background-color: #d23240;
     }
 </style>
 <div class="progress-container">
     <p class="progress-text">Performing action...</p>
-    <div class="progress-circle-container">
-        <div id="progress-item-image" class="progress-item-image"></div>
-        <svg class="progress-circle-svg">
-            <circle class="progress-circle-bg" r="50" cx="60" cy="60"></circle>
-            <circle id="progress-circle" class="progress-circle-progress" r="50" cx="60" cy="60"></circle>
-        </svg>
+
+    <div class="progress-display-wrapper">
+        <div class="progress-circle-container">
+            <div id="progress-item-image" class="progress-item-image"></div>
+            <svg class="progress-circle-svg">
+                <circle class="progress-circle-bg" r="50" cx="60" cy="60"></circle>
+                <circle id="progress-circle" class="progress-circle-progress" r="50" cx="60" cy="60"></circle>
+            </svg>
+        </div>
+        <div class="progress-details">
+            <p id="action-counter">Action 0/0</p>
+            <p id="item-user-name">Username</p>
+        </div>
     </div>
-     <div id="progress-percentage" class="progress-percentage">0%</div>
+    
+    <p id="action-error-message"></p>
+
+    <button id="stop-action-btn" class="btn-secondary">Stop Action</button>
 </div>

@@ -1,27 +1,37 @@
 <style>
     .item-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr); /* 2 items per row */
+        grid-template-columns: repeat(2, 1fr); /* CHANGED to 2 items per row */
         gap: 10px;
         margin-bottom: 20px;
-        max-height: 240px; /* Max height before scrolling */
-        overflow-y: auto; /* Enable vertical scroll on overflow */
-        padding-right: 10px; /* Add some space for the scrollbar */
+        max-height: 240px;
+        overflow-y: auto;
+        padding-right: 10px;
+        min-height: 100px;
     }
-    .item-mock {
-        height: 100px;
+    .item-card {
+        position: relative;
+        aspect-ratio: 1 / 1;
         border-radius: 8px;
         cursor: pointer;
         border: 3px solid transparent;
         transition: border-color 0.2s ease-in-out;
+        overflow: hidden;
+        background-color: #f0f0f0;
     }
-    .item-mock.selected {
-        border-color: #0095f6; /* Blue border when selected */
+    .item-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .item-card.selected {
+        border-color: #0095f6;
     }
 </style>
 <div id="select-items-view">
     <h4 id="select-items-title" style="margin-bottom: 15px;">Select Items</h4>
-    <div class="item-grid"></div>
+    <div class="item-grid">
+        </div>
     <p id="selection-error" class="feedback error" style="display: none; margin-top: -10px; margin-bottom: 15px;"></p>
     <button id="perform-action-btn" class="btn-primary">Perform Action</button>
 </div>

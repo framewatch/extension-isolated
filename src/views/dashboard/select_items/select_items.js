@@ -1,32 +1,43 @@
 import { getFriendlyErrorMessage } from '../../../error-dictionary.js';
+import { getVintedItemsByUserId } from '../../../services/api-service.js';
 
-// src/views/dashboard/select_items/select_items.js
 export function init(status, shadowRoot, viewContext) {
+    // ... (rest of the init function is the same)
     const titleEl = shadowRoot.getElementById('select-items-title');
     const itemGrid = shadowRoot.querySelector('.item-grid');
     const performBtn = shadowRoot.getElementById('perform-action-btn');
-    const errorEl = shadowRoot.getElementById('selection-error'); // Get the new error element
+    const errorEl = shadowRoot.getElementById('selection-error');
+    const VINTED_USER_ID = '281666759';
 
-    const items = [
-        { id: 1, color: '#e2e2e2' },
-        { id: 2, color: '#d4d4d4' },
-        { id: 3, color: '#c6c6c6' },
-        { id: 4, color: '#b8b8b8' },
-        { id: 5, color: '#aaaaaa' },
-        { id: 6, color: '#9c9c9c' },
-        { id: 7, color: '#8e8e8e' },
-        { id: 8, color: '#808080' }
-    ];
-
-    function renderItems() {
-        itemGrid.innerHTML = ''; // Clear existing items
+    function renderItems(items) {
+        itemGrid.innerHTML = '';
+        if (!items || items.length === 0) {
+            itemGrid.innerHTML = '<p style="color: #8e8e8e; text-align: center;">No items found for this user.</p>';
+            return;
+        }
         items.forEach(item => {
             const itemEl = document.createElement('div');
-            itemEl.className = 'item-mock';
+            itemEl.className = 'item-card';
             itemEl.dataset.itemId = item.id;
-            itemEl.style.backgroundColor = item.color;
+            const img = document.createElement('img');
+            img.src = item.thumbnailUrl;
+            img.alt = item.title;
+            img.onerror = () => { img.style.display = 'none'; };
+            itemEl.appendChild(img);
             itemGrid.appendChild(itemEl);
         });
+    }
+
+    async function loadAndDisplayItems() {
+        itemGrid.innerHTML = '<p style="color: #8e8e8e; text-align: center;">Loading your items...</p>';
+        performBtn.disabled = true;
+        const items = await getVintedItemsByUserId(VINTED_USER_ID);
+        if (items === null) {
+            itemGrid.innerHTML = '<p class="feedback error" style="display: block;">Could not load items. Please try again later.</p>';
+        } else {
+            renderItems(items);
+            performBtn.disabled = false;
+        }
     }
 
     if (titleEl && viewContext.featureName) {
@@ -35,38 +46,45 @@ export function init(status, shadowRoot, viewContext) {
     }
     
     itemGrid.addEventListener('click', (event) => {
-        const item = event.target.closest('.item-mock');
+        const item = event.target.closest('.item-card');
         if (item) {
             item.classList.toggle('selected');
         }
     });
 
     performBtn?.addEventListener('click', () => {
-        const selectedItems = shadowRoot.querySelectorAll('.item-mock.selected');
-        const selectedItemIds = Array.from(selectedItems).map(item => item.dataset.itemId);
+        const selectedItemsNodeList = shadowRoot.querySelectorAll('.item-card.selected');
+        const selectedItemsArray = Array.from(selectedItemsNodeList);
         
-        // --- NEW: Validation Check ---
-        if (selectedItemIds.length === 0) {
+        if (selectedItemsArray.length === 0) {
             errorEl.textContent = getFriendlyErrorMessage('no-item-selected');
             errorEl.style.display = 'block';
-            return; // Stop the function
+            return;
         }
         
-        // Hide error if validation passes
         errorEl.style.display = 'none';
-
-        console.log('Selected item IDs:', selectedItemIds);
-
         performBtn.disabled = true;
+
+        // --- NEW LOGIC: Determine the action type ---
+        let actionType;
+        if (viewContext.featureName === 'refreshes') {
+            actionType = 'repostItem';
+        } else {
+            // Add other action types here in the future
+            actionType = 'defaultAction'; // Fallback
+        }
+        
+        const itemsToProcess = selectedItemsArray.map(el => ({ 
+            id: el.dataset.itemId,
+            thumbnail_url: el.querySelector('img')?.src 
+        }));
 
         const event = new CustomEvent('change-dashboard-view', {
             detail: {
                 viewName: 'progress_screen',
                 context: {
-                    featureName: viewContext.featureName,
-                    descriptionType: viewContext.descriptionType // Pass the type along
-                    // In a real app, you would also pass the selected item IDs here
-                    // selectedItems: [ ... ]
+                    actionType: actionType, // Pass the dynamic action type
+                    itemsToProcess: itemsToProcess
                 }
             },
             bubbles: true,
@@ -75,6 +93,6 @@ export function init(status, shadowRoot, viewContext) {
         performBtn.dispatchEvent(event);
     });
 
-    // --- Initial render ---
-    renderItems();
+
+    loadAndDisplayItems();
 }
